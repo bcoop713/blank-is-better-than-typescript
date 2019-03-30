@@ -1,0 +1,9 @@
+{
+  "name": "blank-is-better-than-typescript",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "reveal-md": "^3.0.4"
+  }
+}
