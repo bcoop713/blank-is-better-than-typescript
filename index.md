@@ -2,28 +2,7 @@
 
 ---
 
-## TypeScript Pros
-
-- Eases Refactoring
-- (Some) Type Safety
-- Documentation
-
----
-
-## TypeScript Cons
-
-- Still not completely type safe
-- Wrestling with type deffinition files
-- Requires discipline not to use `<any>`
-- Type system doesn't always map easily to fp patterns
-- Learning curve
-- Requires client buy-in
-
-
----
-
-## Writing "Safe" Code with Design Patterns
-#### and some helper libraries
+# JavaScript Sucks
 
 ----
 ## Common Bugs
@@ -39,7 +18,12 @@ const zip = user.address.zip
 // :fire: :fire: :fire:
 ```
 
-----
+---
+
+Hey! Let's add a static type checker!
+
+---
+
 TypeScript catches _most_ of these problems
 ```typescript
 interface Address {
@@ -63,7 +47,75 @@ const username = user.username
 ```
 
 ![](./images/this_is_fine.jpg)
+
 ---
+
+
+## TypeScript Pros
+
+- Eases Refactoring
+- (Some) Type Safety
+- Documentation
+- Reduces bugs by 15%
+
+---
+
+## TypeScript Cons
+
+- Only reduces bugs by 15%
+- Still not completely type safe
+- Wrestling with type deffinition files
+- Requires discipline not to use `<any>`
+- Type system doesn't always map easily to fp patterns
+- Learning curve
+- Requires client buy-in
+
+
+---
+
+## Let's take a step back
+Why would someone actually do this?
+```javascript
+const user = {username: 'bob'}
+const zip = user.address.zip
+// :fire: :fire: :fire:
+```
+----
+
+Because it actually looks like this
+```javascript
+const wtf = (badDataStructures, poorDecisions) => {
+  let users = [];
+  let zips = [];
+  badDataStructures.forEach(bs => {
+    let user = User.get(bs.userId) // Whoopsie
+    users.push(user)
+  })
+  users.forEach(user => {
+    if (user.address) { // :fire: :fire: :fire:
+      const zip = user.address.zip
+      zipz.push(zip)
+    }
+  })
+  doStuffWithZips(zip)
+}
+```
+
+----
+
+## Code Smells
+
+- I don't know when/where/how this code is getting called
+- I *need* an IDE to tell me what a function paramter is
+- I should refactor some code, but it's Thursday already and I don't have time to break everything
+
+---
+
+## Contraversial Statement:
+TypeScript can paper over code smells and can lead to code that is overly complex and hard to reason about
+
+---
+
 
 ### Typical JS Code Base
 filthy input -> create some bugs -> call some impure functions -> create even more bugs -> (hopefully) output 
@@ -74,6 +126,11 @@ filthy input -> create some bugs -> call some impure functions -> create even mo
 filthy input -> create some well typed bugs -> call some typed impure functions -> create even more typed bugs -> (hopefully) output 
 
 ---
+## Writing "Safe" Code with Design Patterns
+#### and some helper libraries
+
+---
+
 
 ### Typical FP JS Code Base
 filthy input -> quarentine -> happy safe fun time land -> output 
@@ -150,6 +207,7 @@ const useData = (safeUser) => {
 - Eases Refactoring
 - (Some) Type Safety
 - Documentation
+- Reduces bugs by 15%
 
 -----------------
 
@@ -159,6 +217,7 @@ const useData = (safeUser) => {
 - (Some) Type Safety
 - (Some) Documentation
 - Flexible
+- Reduces bugs by 110%
 
 ---
 
