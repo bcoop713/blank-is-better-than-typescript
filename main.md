@@ -64,7 +64,7 @@ const username = user.username
 
 - Only reduces bugs by 15%
 - Still not completely type safe
-- Wrestling with type deffinition files
+- Wrestling with type definition files
 - Requires discipline not to use `<any>`
 - Type system doesn't always map easily to fp patterns
 - Learning curve
@@ -106,7 +106,7 @@ const wtf = (badDataStructures, poorDecisions) => {
 ## Code Smells
 
 - I don't know when/where/how this code is getting called
-- I *need* an IDE to tell me what a function paramter is
+- I *need* an IDE to tell me what a function parameter is
 - I should refactor some code, but it's Thursday already and I don't have time to break everything
 
 ---
@@ -123,25 +123,94 @@ filthy input -> create some bugs -> call some impure functions -> create even mo
 -------------------------------------------
 
 ### Typical TypeScript Code Base
+<!-- .element: class="fragment" -->
 filthy input -> create some well typed bugs -> call some typed impure functions -> create even more typed bugs -> (hopefully) output 
+<!-- .element: class="fragment" -->
 
 ---
 ## Writing "Safe" Code with Design Patterns
 #### and some helper libraries
 
 ---
+#### You Don't Need a Type Checker to Check Types
 
+Joi.js makes it easier to validate data at runtime
+
+This has it's own pros/cons
+```javascript
+const schema = Joi.object().keys({
+    username: Joi.string().alphanum().min(3).max(30).required(),
+    password: Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/),
+    access_token: [Joi.string(), Joi.number()],
+    birthyear: Joi.number().integer().min(1900).max(2013),
+    email: Joi.string().email({ minDomainAtoms: 2 })
+}).with('username', 'birthyear').without('password', 'access_token');
+
+// Return result.
+const result = Joi.validate({ 
+  username: 'abc', 
+  birthyear: 1994 
+}, schema);
+// result.error === null -> valid
+```
+---
+
+You Don't Need TypeScript for Describing Complex Data Structures
+
+Folktale.js
+```javascript
+const union = require('folktale/adt/union/union');
+
+const Result = union('Result', {
+  Ok(value) {
+    return { value }; 
+  },
+  Error(reason) {
+    return { reason };
+  }
+});
+
+const APIError = union('APIError', {
+  NetworkError(error){
+    return { error };
+  },
+  ServiceError(code, message) {
+    return { code, message };
+  },
+  ParsingError(error, data) {
+    return { error, data };
+  }
+});
+
+function handleError(error) {
+  error.matchWith({
+    NetworkError: ({ error }) => { ... },
+    ServiceError: ({ code, message }) => { ... },
+    ParsingError: ({ error, data }) => { ... }
+  })
+}
+
+api.method(response => {
+  response.matchWith({
+    Error: ({ reason }) => handleError(reason),
+    Ok:    ({ value })  => { ... }
+  })
+});
+```
+---
 
 ### Typical FP JS Code Base
-filthy input -> quarentine -> happy safe fun time land -> output 
+filthy input -> quarantine -> happy safe fun time land -> output 
 
  -------------
 
 ### Typical FP TS Code Base
-filthy input -> quarentine -> annoying double safe okay time land -> output 
+<!-- .element: class="fragment" -->
+filthy input -> quarantine -> annoying double safe okay time land -> output 
+<!-- .element: class="fragment" -->
 
 ----
-## Quarentine
+## Quarantine
 
 1. Call Impure Functions
 2. Validate their output
@@ -186,7 +255,7 @@ with Folktale.js
 const handleData = user => {
   const safeData = {
     ...user, 
-    email: Maybe.fromNullable(user.email
+    email: Maybe.fromNullable(user.email)
   }
   useData(safeData)
 }
@@ -200,6 +269,87 @@ const useData = (safeUser) => {
 }
 ```
 
+----
+## Flow Example
+
+```javascript
+const result = R.pipe(
+  validateUserResp,
+  getUser,
+  manipulateUser,
+  doMoreThings
+)(payload)
+
+result.matchWith({
+  Ok: (user) => setState({user}),
+  Error: (error) => setState({error})
+})
+```
+
+---
+
+## Fek also exists
+```javascript
+const schema = Obj({
+  name: isString,
+  race: isString,
+  level: isNumber,
+  friends: List(isString)
+})
+
+const goodData = {
+  name: 'Carlos',
+  race: 'Dwarf',
+  level: 1,
+  friends: ['Thanos']
+}
+
+const badData = {
+  race: 'Turnip',
+  level: 'bork',
+  friends: ['Carrot']
+}
+
+
+const goodResult = validate(schema)(goodData) // -> Ok(goodData)
+const badData = validate(schema)(badData) 
+// -> Error([
+//      {expected: 'string', received: undefined, path: ['name']},
+//      {expected: 'number, received: 'bork', path: ['level']}
+//    ])
+```
+----
+## Type Coercion
+```javascript
+const userSchema = Obj({
+  name: isString,
+  age: isNumber
+})
+const dataSchema = Obj({
+  user: Maybe(userSchema), // if user exists, it will be replaced with Just(user), otherwise Nothing()
+  timestamp: isString,
+  dataCode: isNumber
+})
+
+const data = {
+  timestamp: '1793829384',
+  dataCode: 7
+}
+
+const getName = (user) => {
+  return match({
+    Just: (user) => user.name,
+    Nothing: () => 'Jane Doe'
+  })(user)
+}
+
+const result = validate(dataSchema)(data)
+
+const newState = match({
+  Ok: (data) => {...state, name: getName(data.user)},
+  Error: (err) => {...state, errorMessage: err}
+})(result) 
+```
 ---
 
 ## TypeScript Pros
@@ -224,7 +374,7 @@ const useData = (safeUser) => {
 ## TypeScript Cons
 
 - Still not completely type safe
-- Wrestling with type deffinition files
+- Wrestling with type definition files
 - Requires discipline not to use `<any>`
 - Type system doesn't always map easily to fp patterns
 - Learning curve
@@ -236,5 +386,4 @@ const useData = (safeUser) => {
 
 - Still not completely safe
 - Learning curve
-
 
