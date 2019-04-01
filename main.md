@@ -42,7 +42,7 @@ But...
 ----
 ```typescript
 const users: User[] = [{username: 'bob'}]
-const user = user[0]
+const user = user[1]
 const username = user.username
 ```
 
